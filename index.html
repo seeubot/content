@@ -82,12 +82,19 @@
                 <button type="submit" class="w-full py-3 bg-purple-600 hover:bg-purple-700 rounded-lg text-white font-bold transition-colors">Add Movie</button>
             </form>
 
-            <!-- Series Form (Hidden by default) -->
+            <!-- Series Form (Updated to be dynamic) -->
             <form id="series-form" class="space-y-4 hidden">
                 <input type="text" id="series-name" placeholder="Series Name" class="w-full px-4 py-3 bg-gray-800 rounded-lg text-gray-200 border border-gray-700 focus:outline-none focus:border-purple-500" required>
                 <input type="url" id="series-thumbnail" placeholder="Thumbnail URL" class="w-full px-4 py-3 bg-gray-800 rounded-lg text-gray-200 border border-gray-700 focus:outline-none focus:border-purple-500" required>
-                <!-- Simplified for demo: users can paste episodes as a JSON string -->
-                <textarea id="series-seasons" placeholder="Paste Seasons & Episodes JSON here" rows="6" class="w-full px-4 py-3 bg-gray-800 rounded-lg text-gray-200 border border-gray-700 focus:outline-none focus:border-purple-500" required></textarea>
+                
+                <div id="seasons-container" class="space-y-4">
+                    <!-- Dynamic seasons and episodes will be added here -->
+                </div>
+
+                <button type="button" id="add-season-btn" class="w-full py-2 bg-gray-700 hover:bg-gray-600 rounded-lg text-gray-200 font-bold transition-colors">
+                    Add Season
+                </button>
+                
                 <button type="submit" class="w-full py-3 bg-purple-600 hover:bg-purple-700 rounded-lg text-white font-bold transition-colors">Add Series</button>
             </form>
 
@@ -96,8 +103,8 @@
     </div>
     
     <script>
-        // *** IMPORTANT: Replace this placeholder with your actual Koyeb API URL ***
-        const API_BASE_URL = "https://ethical-stephana-seeutech-e153f907.koyeb.app";
+        // *** IMPORTANT: You must replace this placeholder with your actual Koyeb API URL ***
+        const API_BASE_URL = "https://content-y200421.koyeb.app";
 
         // ================================================================
         // DOM ELEMENTS
@@ -115,6 +122,8 @@
         const movieForm = document.getElementById('movie-form');
         const seriesForm = document.getElementById('series-form');
         const modalMessage = document.getElementById('modal-message');
+        const seasonsContainer = document.getElementById('seasons-container');
+        const addSeasonBtn = document.getElementById('add-season-btn');
 
         let debounceTimeout;
 
@@ -240,6 +249,70 @@
         };
 
         // ================================================================
+        // DYNAMIC SERIES FORM LOGIC
+        // ================================================================
+
+        // Function to create an episode input group
+        const createEpisodeGroup = (episodeNumber) => {
+            const episodeGroup = document.createElement('div');
+            episodeGroup.className = 'flex flex-col sm:flex-row space-y-2 sm:space-y-0 sm:space-x-2 border-l-4 border-gray-600 pl-4 py-2';
+            episodeGroup.innerHTML = `
+                <input type="text" placeholder="Episode Title (e.g., 'Chapter One')" class="w-full sm:w-1/2 px-4 py-3 bg-gray-800 rounded-lg text-gray-200 border border-gray-700 focus:outline-none focus:border-purple-500" required>
+                <input type="url" placeholder="Streaming URL" class="w-full sm:w-1/2 px-4 py-3 bg-gray-800 rounded-lg text-gray-200 border border-gray-700 focus:outline-none focus:border-purple-500" required>
+                <input type="hidden" class="episode-number" value="${episodeNumber}">
+            `;
+            return episodeGroup;
+        };
+
+        // Function to create a season input group
+        const createSeasonGroup = (seasonNumber) => {
+            const seasonGroup = document.createElement('div');
+            seasonGroup.className = 'bg-gray-800 p-4 rounded-xl space-y-3';
+            seasonGroup.innerHTML = `
+                <div class="flex items-center space-x-2">
+                    <input type="number" placeholder="Season Number" value="${seasonNumber}" min="1" class="season-number-input w-24 px-4 py-3 bg-gray-700 rounded-lg text-gray-200 border border-gray-600 focus:outline-none focus:border-purple-500" required>
+                    <p class="text-xl font-bold text-white">Season ${seasonNumber}</p>
+                    <button type="button" class="remove-season-btn ml-auto text-gray-400 hover:text-red-500">
+                        <svg class="lucide lucide-x" xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 6 6 18"/><path d="m6 6 12 12"/></svg>
+                    </button>
+                </div>
+                <div class="episodes-container space-y-2">
+                    <!-- Episodes for this season will be added here -->
+                </div>
+                <button type="button" class="add-episode-btn w-full py-2 bg-gray-700 hover:bg-gray-600 rounded-lg text-gray-200 font-bold transition-colors">
+                    Add Episode
+                </button>
+            `;
+
+            // Add event listeners for new elements
+            const episodesContainer = seasonGroup.querySelector('.episodes-container');
+            const addEpisodeBtn = seasonGroup.querySelector('.add-episode-btn');
+            const removeSeasonBtn = seasonGroup.querySelector('.remove-season-btn');
+            
+            addEpisodeBtn.addEventListener('click', () => {
+                const episodeCount = episodesContainer.querySelectorAll('div').length + 1;
+                episodesContainer.appendChild(createEpisodeGroup(episodeCount));
+            });
+
+            removeSeasonBtn.addEventListener('click', () => {
+                seasonGroup.remove();
+                reindexSeasons();
+            });
+
+            return seasonGroup;
+        };
+        
+        // Reindex seasons after one is removed
+        const reindexSeasons = () => {
+            const seasonGroups = seasonsContainer.querySelectorAll('.bg-gray-800');
+            seasonGroups.forEach((seasonGroup, index) => {
+                const seasonNumber = index + 1;
+                seasonGroup.querySelector('.season-number-input').value = seasonNumber;
+                seasonGroup.querySelector('p').textContent = `Season ${seasonNumber}`;
+            });
+        };
+
+        // ================================================================
         // EVENT LISTENERS
         // ================================================================
 
@@ -262,6 +335,7 @@
             movieForm.reset();
             seriesForm.reset();
             hide(modalMessage);
+            seasonsContainer.innerHTML = ''; // Clear dynamic form content
         });
         mediaModal.addEventListener('click', (e) => {
             if (e.target === mediaModal) {
@@ -269,6 +343,7 @@
                 movieForm.reset();
                 seriesForm.reset();
                 hide(modalMessage);
+                seasonsContainer.innerHTML = '';
             }
         });
 
@@ -291,25 +366,7 @@
         });
 
         // Handle form submissions
-        const handleFormSubmit = async (form, endpoint) => {
-            const formData = new FormData(form);
-            const data = {};
-            formData.forEach((value, key) => {
-                data[key] = value;
-            });
-            
-            // Special handling for the series JSON textarea
-            if (endpoint.includes('series')) {
-                try {
-                    data.seasons = JSON.parse(document.getElementById('series-seasons').value);
-                } catch (e) {
-                    modalMessage.textContent = 'Invalid JSON for seasons. Please check the format.';
-                    modalMessage.classList.add('text-red-500');
-                    show(modalMessage);
-                    return;
-                }
-            }
-
+        const handleFormSubmit = async (data, endpoint) => {
             try {
                 const response = await fetch(`${API_BASE_URL}${endpoint}`, {
                     method: 'POST',
@@ -327,7 +384,7 @@
                 modalMessage.classList.add('text-green-500');
                 show(modalMessage);
                 
-                form.reset();
+                // form.reset(); // Don't reset to let user see success message
                 fetchAndRenderMedia();
             } catch (error) {
                 modalMessage.textContent = `Error: ${error.message}`;
@@ -344,17 +401,46 @@
                 thumbnail: document.getElementById('movie-thumbnail').value,
                 streamingUrl: document.getElementById('movie-url').value,
             };
-            handleFormSubmit({ get: (key) => data[key] }, '/api/movies');
+            handleFormSubmit(data, '/api/movies');
         });
 
         seriesForm.addEventListener('submit', (e) => {
             e.preventDefault();
+            
+            const seasons = [];
+            const seasonElements = seasonsContainer.querySelectorAll('.bg-gray-800');
+            
+            seasonElements.forEach(seasonEl => {
+                const seasonNumber = parseInt(seasonEl.querySelector('.season-number-input').value);
+                const episodes = [];
+                
+                const episodeElements = seasonEl.querySelectorAll('.episodes-container > div');
+                episodeElements.forEach(episodeEl => {
+                    const inputs = episodeEl.querySelectorAll('input');
+                    episodes.push({
+                        title: inputs[0].value,
+                        streamingUrl: inputs[1].value,
+                        episodeNumber: parseInt(inputs[2].value)
+                    });
+                });
+                
+                seasons.push({ seasonNumber, episodes });
+            });
+            
             const data = {
                 name: document.getElementById('series-name').value,
                 thumbnail: document.getElementById('series-thumbnail').value,
-                seasons: JSON.parse(document.getElementById('series-seasons').value),
+                seasons: seasons
             };
-            handleFormSubmit({ get: (key) => data[key] }, '/api/series');
+
+            handleFormSubmit(data, '/api/series');
+        });
+
+        // Add Season button handler
+        addSeasonBtn.addEventListener('click', () => {
+            const seasonCount = seasonsContainer.querySelectorAll('.bg-gray-800').length + 1;
+            seasonsContainer.appendChild(createSeasonGroup(seasonCount));
+            lucide.createIcons(); // Re-render icons for new elements
         });
 
         // Initial fetch on page load
