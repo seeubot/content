@@ -38,7 +38,8 @@ mongoose.connect(MONGODB_URI, {
 
 // Define the Mongoose schema for movies
 const movieSchema = new mongoose.Schema({
-  name: { type: String, required: true },
+  // 💡 FIX: Removed 'unique: true' from the name field to prevent duplicate key errors
+  name: { type: String, required: true }, 
   thumbnail: { type: String, required: true },
   streamingUrl: { type: String, required: true },
   addedBy: { type: Number, required: false },
