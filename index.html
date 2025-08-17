@@ -366,8 +366,16 @@
         });
 
         // Handle form submissions
-        const handleFormSubmit = async (data, endpoint) => {
+        const handleFormSubmit = async (data, endpoint, form) => {
             try {
+                // 💡 FIX: Check if form fields are empty before submitting
+                if (endpoint === '/api/movies' && (!data.name || !data.thumbnail || !data.streamingUrl)) {
+                    throw new Error('Please fill in all movie fields.');
+                }
+                if (endpoint === '/api/series' && (!data.name || !data.thumbnail || data.seasons.length === 0)) {
+                    throw new Error('Please fill in all series fields and add at least one season/episode.');
+                }
+                
                 const response = await fetch(`${API_BASE_URL}${endpoint}`, {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
@@ -384,7 +392,7 @@
                 modalMessage.classList.add('text-green-500');
                 show(modalMessage);
                 
-                // form.reset(); // Don't reset to let user see success message
+                form.reset();
                 fetchAndRenderMedia();
             } catch (error) {
                 modalMessage.textContent = `Error: ${error.message}`;
@@ -401,7 +409,8 @@
                 thumbnail: document.getElementById('movie-thumbnail').value,
                 streamingUrl: document.getElementById('movie-url').value,
             };
-            handleFormSubmit(data, '/api/movies');
+            // 💡 FIX: Pass the form element to handleFormSubmit for resetting
+            handleFormSubmit(data, '/api/movies', movieForm);
         });
 
         seriesForm.addEventListener('submit', (e) => {
@@ -433,7 +442,8 @@
                 seasons: seasons
             };
 
-            handleFormSubmit(data, '/api/series');
+            // 💡 FIX: Pass the form element to handleFormSubmit for resetting
+            handleFormSubmit(data, '/api/series', seriesForm);
         });
 
         // Add Season button handler
