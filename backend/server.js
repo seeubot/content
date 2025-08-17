@@ -72,8 +72,13 @@ const Series = mongoose.model('Series', seriesSchema);
 
 const app = express();
 
-// Use CORS middleware to allow requests from the frontend
-app.use(cors());
+// 💡 CORS Configuration to allow requests from the Vercel frontend
+const corsOptions = {
+  origin: 'https://content-fwug.vercel.app', // Your Vercel frontend URL
+  methods: ['GET', 'POST', 'PUT', 'DELETE'],
+  allowedHeaders: ['Content-Type']
+};
+app.use(cors(corsOptions));
 app.use(express.json({ limit: '10mb' }));
 
 // ================================================================
