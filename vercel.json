@@ -1,5 +1,6 @@
 {
   "version": 2,
+  "functions": {},
   "builds": [
     {
       "src": "index.html",
