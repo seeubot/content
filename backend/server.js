@@ -1,247 +1,149 @@
-// Filename: backend/server.js
+// server.js
 
-require('dotenv').config();
-
-const mongoose = require('mongoose');
+// Import necessary libraries
 const express = require('express');
+const mongoose = require('mongoose');
 const cors = require('cors');
+const path = require('path');
+
+// Initialize Express app
+const app = express();
+const PORT = process.env.PORT || 3000;
+
+// Middleware setup
+app.use(cors()); // Enable CORS for cross-origin requests
+app.use(express.json()); // Parse JSON request bodies
 
 // ================================================================
-// CONFIGURATION
+// MONGODB CONNECTION
 // ================================================================
 
-const MONGODB_URI = process.env.MONGODB_URI;
-// Use process.env.PORT to be compatible with Koyeb's environment
-const PORT = process.env.PORT || 3001; 
+// Get the MongoDB URI from environment variables.
+// The URI must be set on the hosting platform (e.g., Koyeb)
+const mongoURI = process.env.MONGODB_URI;
 
-// Exit if the MongoDB URI is not provided
-if (!MONGODB_URI) {
-  console.error('❌ MONGODB_URI not found in environment variables. Please set it.');
-  process.exit(1);
+// Check if the MongoDB URI is available
+if (!mongoURI) {
+    console.error('Error: MONGODB_URI environment variable is not set.');
+    process.exit(1); // Exit if the URI is not configured
 }
 
-// ================================================================
-// MONGODB CONNECTION & SCHEMAS
-// ================================================================
-
-mongoose.set('strictQuery', false);
-
-mongoose.connect(MONGODB_URI, {
-  useNewUrlParser: true,
-  useUnifiedTopology: true,
-}).then(() => {
-  console.log('✅ Connected to MongoDB');
-}).catch(err => {
-  console.error('❌ MongoDB connection error:', err);
-  process.exit(1);
+// Connect to MongoDB using Mongoose
+mongoose.connect(mongoURI, {
+    useNewUrlParser: true,
+    useUnifiedTopology: true,
+})
+.then(() => console.log('MongoDB connected successfully'))
+.catch(err => {
+    console.error('MongoDB connection error:', err);
+    process.exit(1); // Exit on connection failure
 });
 
-// Define the Mongoose schema for movies
-const movieSchema = new mongoose.Schema({
-  // 💡 FIX: Removed 'unique: true' from the name field to prevent duplicate key errors
-  name: { type: String, required: true }, 
-  thumbnail: { type: String, required: true },
-  streamingUrl: { type: String, required: true },
-  addedBy: { type: Number, required: false },
-  addedAt: { type: Date, default: Date.now }
+// ================================================================
+// MONGOOSE SCHEMA AND MODEL
+// ================================================================
+
+// Define the schema for an individual episode
+const episodeSchema = new mongoose.Schema({
+    episodeNumber: { type: Number, required: true },
+    title: { type: String, required: true },
+    streamingUrl: { type: String, required: true },
 });
 
-// Define the Mongoose schema for series
-const seriesSchema = new mongoose.Schema({
-  name: { type: String, required: true },
-  thumbnail: { type: String, required: true },
-  seasons: [{
+// Define the schema for a season, which contains multiple episodes
+const seasonSchema = new mongoose.Schema({
     seasonNumber: { type: Number, required: true },
-    episodes: [{
-      episodeNumber: { type: Number, required: true },
-      title: { type: String, required: true },
-      streamingUrl: { type: String, required: true },
-      thumbnail: String
-    }]
-  }],
-  addedBy: { type: Number, required: false },
-  addedAt: { type: Date, default: Date.now }
+    episodes: [episodeSchema], // An array of episode documents
 });
 
-// Create Mongoose models
-const Movie = mongoose.model('Movie', movieSchema);
+// Define the schema for a series, which contains multiple seasons
+const seriesSchema = new mongoose.Schema({
+    name: { type: String, required: true },
+    thumbnail: { type: String, required: true },
+    seasons: [seasonSchema], // An array of season documents
+    type: { type: String, default: 'series' } // Enforce 'series' type
+});
+
+// Create the Mongoose model from the schema
 const Series = mongoose.model('Series', seriesSchema);
 
 // ================================================================
-// EXPRESS APP & MIDDLEWARE
+// API ENDPOINTS (CRUD OPERATIONS)
 // ================================================================
 
-const app = express();
+// GET all series (with optional search)
+// This is the primary endpoint for your Sketchware app to fetch data.
+app.get('/api/series', async (req, res) => {
+    try {
+        const { search } = req.query;
+        let series;
 
-// 💡 CORS Configuration to allow requests from the Vercel frontend
-const corsOptions = {
-  origin: 'https://content-fwug.vercel.app', // Your Vercel frontend URL
-  methods: ['GET', 'POST', 'PUT', 'DELETE'],
-  allowedHeaders: ['Content-Type']
-};
-app.use(cors(corsOptions));
-app.use(express.json({ limit: '10mb' }));
+        if (search) {
+            // Case-insensitive search on series name
+            const regex = new RegExp(search, 'i');
+            series = await Series.find({ name: { $regex: regex } });
+        } else {
+            // If no search query, return all series
+            series = await Series.find();
+        }
 
-// ================================================================
-// API ENDPOINTS
-// ================================================================
-
-// 🚀 POST endpoint to add a new movie
-app.post('/api/movies', async (req, res) => {
-  try {
-    const { name, thumbnail, streamingUrl } = req.body;
-    if (!name || !thumbnail || !streamingUrl) {
-      return res.status(400).json({ error: 'Missing required fields: name, thumbnail, or streamingUrl' });
+        res.json(series);
+    } catch (err) {
+        res.status(500).json({ error: 'Failed to fetch series.' });
     }
-    const newMovie = new Movie({ name, thumbnail, streamingUrl });
-    await newMovie.save();
-    res.status(201).json(newMovie);
-  } catch (error) {
-    console.error('❌ Error adding new movie:', error);
-    res.status(500).json({ error: 'Failed to add movie', details: error.message });
-  }
 });
 
-// 🚀 POST endpoint to add a new series
+// POST a new series
+// Use this endpoint to add new series to the database.
 app.post('/api/series', async (req, res) => {
-  try {
-    const { name, thumbnail, seasons } = req.body;
-    if (!name || !thumbnail || !seasons || !Array.isArray(seasons)) {
-      return res.status(400).json({ error: 'Missing required fields or invalid format' });
+    try {
+        const newSeries = new Series(req.body);
+        await newSeries.save();
+        res.status(201).json(newSeries);
+    } catch (err) {
+        res.status(400).json({ error: 'Failed to add series.', details: err.message });
     }
-    const newSeries = new Series({ name, thumbnail, seasons });
-    await newSeries.save();
-    res.status(201).json(newSeries);
-  } catch (error) {
-    console.error('❌ Error adding new series:', error);
-    res.status(500).json({ error: 'Failed to add series', details: error.message });
-  }
 });
 
-// 🔄 PUT endpoint to update a movie
-app.put('/api/movies/:id', async (req, res) => {
-  try {
-    const { id } = req.params;
-    const updatedMovie = await Movie.findByIdAndUpdate(id, req.body, { new: true });
-    if (!updatedMovie) {
-      return res.status(404).json({ error: 'Movie not found' });
-    }
-    res.json(updatedMovie);
-  } catch (error) {
-    console.error('❌ Error updating movie:', error);
-    res.status(500).json({ error: 'Failed to update movie', details: error.message });
-  }
-});
-
-// 🔄 PUT endpoint to update a series
+// PUT (update) an existing series
+// Use this endpoint to edit a series by its ID.
 app.put('/api/series/:id', async (req, res) => {
-  try {
-    const { id } = req.params;
-    const updatedSeries = await Series.findByIdAndUpdate(id, req.body, { new: true });
-    if (!updatedSeries) {
-      return res.status(404).json({ error: 'Series not found' });
+    try {
+        const updatedSeries = await Series.findByIdAndUpdate(req.params.id, req.body, { new: true, runValidators: true });
+        if (!updatedSeries) {
+            return res.status(404).json({ error: 'Series not found.' });
+        }
+        res.json(updatedSeries);
+    } catch (err) {
+        res.status(400).json({ error: 'Failed to update series.', details: err.message });
     }
-    res.json(updatedSeries);
-  } catch (error) {
-    console.error('❌ Error updating series:', error);
-    res.status(500).json({ error: 'Failed to update series', details: error.message });
-  }
 });
 
-// 🗑️ DELETE endpoint to delete a movie
-app.delete('/api/movies/:id', async (req, res) => {
-  try {
-    const { id } = req.params;
-    const deletedMovie = await Movie.findByIdAndDelete(id);
-    if (!deletedMovie) {
-      return res.status(404).json({ error: 'Movie not found' });
-    }
-    res.json({ message: 'Movie deleted successfully' });
-  } catch (error) {
-    console.error('❌ Error deleting movie:', error);
-    res.status(500).json({ error: 'Failed to delete movie', details: error.message });
-  }
-});
-
-// 🗑️ DELETE endpoint to delete a series
+// DELETE a series
+// Use this endpoint to delete a series by its ID.
 app.delete('/api/series/:id', async (req, res) => {
-  try {
-    const { id } = req.params;
-    const deletedSeries = await Series.findByIdAndDelete(id);
-    if (!deletedSeries) {
-      return res.status(404).json({ error: 'Series not found' });
+    try {
+        const deletedSeries = await Series.findByIdAndDelete(req.params.id);
+        if (!deletedSeries) {
+            return res.status(404).json({ error: 'Series not found.' });
+        }
+        res.json({ message: 'Series deleted successfully.' });
+    } catch (err) {
+        res.status(500).json({ error: 'Failed to delete series.' });
     }
-    res.json({ message: 'Series deleted successfully' });
-  } catch (error) {
-    console.error('❌ Error deleting series:', error);
-    res.status(500).json({ error: 'Failed to delete series', details: error.message });
-  }
 });
 
-// 🎬📺 Fetch all movies and series in one go
-app.get('/api/media', async (req, res) => {
-  try {
-    const { search } = req.query;
-    const searchQuery = search ? { name: { $regex: search, $options: 'i' } } : {};
-    
-    const [movies, series] = await Promise.all([
-      Movie.find(searchQuery).sort({ addedAt: -1 }).exec(),
-      Series.find(searchQuery).sort({ addedAt: -1 }).exec()
-    ]);
+// Serve the static frontend file (index.html)
+app.use(express.static('public'));
 
-    const combinedMedia = [
-      ...movies.map(movie => ({ ...movie._doc, type: 'movie' })),
-      ...series.map(s => ({ ...s._doc, type: 'series' }))
-    ];
-
-    combinedMedia.sort((a, b) => new Date(b.addedAt) - new Date(a.addedAt));
-    
-    res.json(combinedMedia);
-  } catch (error) {
-    console.error('❌ Error fetching combined media:', error);
-    res.status(500).json({ error: 'Failed to fetch media', details: error.message });
-  }
+// Catch-all route to serve the index.html for any other requests
+// This is important for single-page applications.
+app.get('*', (req, res) => {
+    res.sendFile(path.join(__dirname, 'public', 'index.html'));
 });
 
-// 📊 Get library statistics
-app.get('/api/stats', async (req, res) => {
-  try {
-    const movieCount = await Movie.countDocuments();
-    const seriesCount = await Series.countDocuments();
-    const totalEpisodes = await Series.aggregate([
-      { $unwind: '$seasons' },
-      { $unwind: '$seasons.episodes' },
-      { $count: 'totalEpisodes' }
-    ]);
-    const episodeCount = totalEpisodes[0]?.totalEpisodes || 0;
-    res.json({
-      movies: movieCount,
-      series: seriesCount,
-      episodes: episodeCount,
-      total: movieCount + seriesCount
-    });
-  } catch (error) {
-    console.error('❌ Error fetching statistics:', error);
-    res.status(500).json({ error: 'Failed to fetch statistics' });
-  }
-});
-
-// Health check endpoint
-app.get('/api/health', (req, res) => {
-  res.status(200).json({
-    status: 'OK',
-    timestamp: new Date().toISOString(),
-    mongodb: mongoose.connection.readyState === 1 ? 'connected' : 'disconnected'
-  });
-});
-
-// Error handling middleware
-app.use((error, req, res, next) => {
-  console.error('Server error:', error);
-  res.status(500).json({ error: 'Internal server error', details: error.message });
-});
-
-app.listen(PORT, '0.0.0.0', () => {
-  console.log(`🚀 Media Manager API Server running on port ${PORT}`);
+// Start the server
+app.listen(PORT, () => {
+    console.log(`Server is running on http://localhost:${PORT}`);
 });
 
