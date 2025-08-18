@@ -1,17 +1,17 @@
 {
-  "version": 2,
-  "functions": {},
-  "builds": [
-    {
-      "src": "index.html",
-      "use": "@vercel/static-build"
+  "functions": {
+    "api/series": {
+      "includeFiles": "server.js"
     }
-  ],
+  },
   "routes": [
     {
+      "src": "/api/(.*)",
+      "dest": "server.js"
+    },
+    {
       "src": "/(.*)",
-      "dest": "/index.html"
+      "dest": "index.html"
     }
   ]
 }
-
