@@ -1,17 +1,16 @@
 {
-  "functions": {
-    "api/series": {
-      "includeFiles": "server.js"
+  "version": 2,
+  "builds": [
+    {
+      "src": "backend/server.js",
+      "use": "@vercel/node"
     }
-  },
+  ],
   "routes": [
     {
       "src": "/api/(.*)",
-      "dest": "server.js"
-    },
-    {
-      "src": "/(.*)",
-      "dest": "index.html"
+      "dest": "backend/server.js"
     }
   ]
 }
+
