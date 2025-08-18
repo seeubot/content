@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Media Library</title>
+    <title>Series Library</title>
     <!-- Tailwind CSS for styling -->
     <script src="https://cdn.tailwindcss.com"></script>
     <!-- Lucide Icons for a modern look -->
@@ -22,9 +22,9 @@
         <!-- Header -->
         <header class="py-8 text-center">
             <h1 class="text-4xl sm:text-5xl md:text-6xl font-extrabold text-transparent bg-clip-text bg-gradient-to-r from-purple-400 to-pink-600 mb-2 animate-pulse">
-                Media Library
+                Series Library
             </h1>
-            <p class="text-lg sm:text-xl text-gray-400">Your movies and series, all in one place.</p>
+            <p class="text-lg sm:text-xl text-gray-400">Your favorite series, all in one place.</p>
         </header>
 
         <!-- Search Bar and Add Button -->
@@ -33,20 +33,20 @@
                 <input
                     type="text"
                     id="search-input"
-                    placeholder="Search for movies or series..."
+                    placeholder="Search for series..."
                     class="w-full pl-12 pr-4 py-3 rounded-xl bg-gray-800 text-gray-200 focus:outline-none focus:ring-2 focus:ring-purple-500 transition-all duration-200 shadow-md"
                 />
                 <svg id="search-icon" class="lucide lucide-search absolute left-4 top-1/2 -translate-y-1/2 text-gray-400" xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.3-4.3"/></svg>
             </div>
-            <button id="add-media-btn" class="w-full sm:w-auto px-6 py-3 bg-purple-600 hover:bg-purple-700 text-white font-semibold rounded-xl shadow-lg transition-colors duration-200 flex items-center justify-center gap-2">
+            <button id="add-series-btn" class="w-full sm:w-auto px-6 py-3 bg-purple-600 hover:bg-purple-700 text-white font-semibold rounded-xl shadow-lg transition-colors duration-200 flex items-center justify-center gap-2">
                 <svg class="lucide lucide-plus" xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14"/><path d="M12 5v14"/></svg>
-                Add New Media
+                Add New Series
             </button>
         </div>
 
         <!-- Content Display Area -->
         <div id="media-container" class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-4 sm:gap-6">
-            <!-- Media cards will be dynamically inserted here by JavaScript -->
+            <!-- Series cards will be dynamically inserted here by JavaScript -->
         </div>
 
         <!-- Loading & Error Indicators -->
@@ -54,37 +54,22 @@
             <svg class="lucide lucide-loader-2 animate-spin text-purple-500" xmlns="http://www.w3.org/2000/svg" width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12a9 9 0 1 1-6.219-8.56"/></svg>
         </div>
         <div id="error-message" class="text-center text-red-400 py-12 hidden">
-            <p>Failed to load media. Please check the API server.</p>
+            <p>Failed to load series. Please check the API server.</p>
         </div>
         <div id="no-results-message" class="text-center text-gray-500 py-12 hidden">
-            <p>No media found. Try adding some via the API or try a different search term.</p>
+            <p>No series found. Try adding some or try a different search term.</p>
         </div>
     </div>
 
-    <!-- Add/Edit Media Modal -->
-    <div id="media-modal" class="fixed inset-0 z-50 bg-black/70 backdrop-blur-sm flex items-center justify-center p-4 hidden">
+    <!-- Add/Edit Series Modal -->
+    <div id="series-modal" class="fixed inset-0 z-50 bg-black/70 backdrop-blur-sm flex items-center justify-center p-4 hidden">
         <div class="relative bg-gray-900 rounded-xl p-6 w-full max-w-lg shadow-2xl">
             <button id="close-modal-btn" class="absolute top-4 right-4 text-gray-400 hover:text-gray-200">
                 <svg class="lucide lucide-x" xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 6 6 18"/><path d="m6 6 12 12"/></svg>
             </button>
-            <h2 id="modal-title" class="text-2xl font-bold mb-6 text-center text-white">Add New Media</h2>
+            <h2 id="modal-title" class="text-2xl font-bold mb-6 text-center text-white">Add New Series</h2>
             
-            <div id="type-toggle-btns" class="flex justify-center mb-6">
-                <button id="movie-form-btn" class="px-4 py-2 rounded-l-lg font-semibold transition-colors duration-200 bg-purple-600 text-white">Movie</button>
-                <button id="series-form-btn" class="px-4 py-2 rounded-r-lg font-semibold transition-colors duration-200 bg-gray-800 text-gray-400">Series</button>
-            </div>
-
-            <!-- Movie Form -->
-            <form id="movie-form" class="space-y-4">
-                <input type="hidden" id="movie-id">
-                <input type="text" id="movie-name" placeholder="Movie Name" class="w-full px-4 py-3 bg-gray-800 rounded-lg text-gray-200 border border-gray-700 focus:outline-none focus:border-purple-500" required>
-                <input type="url" id="movie-thumbnail" placeholder="Thumbnail URL" class="w-full px-4 py-3 bg-gray-800 rounded-lg text-gray-200 border border-gray-700 focus:outline-none focus:border-purple-500" required>
-                <input type="url" id="movie-url" placeholder="Streaming URL" class="w-full px-4 py-3 bg-gray-800 rounded-lg text-gray-200 border border-gray-700 focus:outline-none focus:border-purple-500" required>
-                <button type="submit" id="movie-submit-btn" class="w-full py-3 bg-purple-600 hover:bg-purple-700 rounded-lg text-white font-bold transition-colors">Add Movie</button>
-            </form>
-
-            <!-- Series Form (Updated to be dynamic) -->
-            <form id="series-form" class="space-y-4 hidden">
+            <form id="series-form" class="space-y-4">
                 <input type="hidden" id="series-id">
                 <input type="text" id="series-name" placeholder="Series Name" class="w-full px-4 py-3 bg-gray-800 rounded-lg text-gray-200 border border-gray-700 focus:outline-none focus:border-purple-500" required>
                 <input type="url" id="series-thumbnail" placeholder="Thumbnail URL" class="w-full px-4 py-3 bg-gray-800 rounded-lg text-gray-200 border border-gray-700 focus:outline-none focus:border-purple-500" required>
@@ -128,17 +113,12 @@
         const errorMessage = document.getElementById('error-message');
         const noResultsMessage = document.getElementById('no-results-message');
         const searchInput = document.getElementById('search-input');
-        const addMediaBtn = document.getElementById('add-media-btn');
-        const mediaModal = document.getElementById('media-modal');
+        const addSeriesBtn = document.getElementById('add-series-btn');
+        const seriesModal = document.getElementById('series-modal');
         const confirmModal = document.getElementById('confirm-modal');
         const closeModalBtn = document.getElementById('close-modal-btn');
-        const movieFormBtn = document.getElementById('movie-form-btn');
-        const seriesFormBtn = document.getElementById('series-form-btn');
-        const movieForm = document.getElementById('movie-form');
         const seriesForm = document.getElementById('series-form');
         const modalTitle = document.getElementById('modal-title');
-        const typeToggleBtns = document.getElementById('type-toggle-btns');
-        const movieSubmitBtn = document.getElementById('movie-submit-btn');
         const seriesSubmitBtn = document.getElementById('series-submit-btn');
         const modalMessage = document.getElementById('modal-message');
         const seasonsContainer = document.getElementById('seasons-container');
@@ -147,7 +127,7 @@
         const cancelDeleteBtn = document.getElementById('cancel-delete-btn');
 
         let debounceTimeout;
-        let itemToDelete = null;
+        let itemToModify = null;
 
         // ================================================================
         // HELPER FUNCTIONS
@@ -159,32 +139,82 @@
 
         // Function to reset the modal form and state
         const resetModal = () => {
-            movieForm.reset();
             seriesForm.reset();
             seasonsContainer.innerHTML = '';
             hide(modalMessage);
-            modalTitle.textContent = 'Add New Media';
-            movieSubmitBtn.textContent = 'Add Movie';
+            modalTitle.textContent = 'Add New Series';
             seriesSubmitBtn.textContent = 'Add Series';
-            show(typeToggleBtns);
-            itemToDelete = null; // Reset item to delete
+            itemToModify = null; // Reset item to modify
         };
 
-        // Function to render a single media card
-        const renderMediaCard = (item) => {
+        // Function to create an episode input group
+        const createEpisodeGroup = (episodeNumber, title = '', streamingUrl = '', episodeId = '') => {
+            const episodeGroup = document.createElement('div');
+            episodeGroup.className = 'flex flex-col sm:flex-row space-y-2 sm:space-y-0 sm:space-x-2 border-l-4 border-gray-600 pl-4 py-2 relative group';
+            episodeGroup.innerHTML = `
+                <input type="text" placeholder="Episode Title (e.g., 'Chapter One')" class="w-full sm:w-1/2 px-4 py-3 bg-gray-800 rounded-lg text-gray-200 border border-gray-700 focus:outline-none focus:border-purple-500" value="${title}" required>
+                <input type="url" placeholder="Streaming URL" class="w-full sm:w-1/2 px-4 py-3 bg-gray-800 rounded-lg text-gray-200 border border-gray-700 focus:outline-none focus:border-purple-500" value="${streamingUrl}" required>
+                <input type="hidden" class="episode-number" value="${episodeNumber}">
+                <input type="hidden" class="episode-id" value="${episodeId}">
+                <button type="button" class="remove-episode-btn absolute top-0 right-0 p-1 text-gray-400 hover:text-red-500 opacity-0 group-hover:opacity-100 transition-opacity">
+                    <svg class="lucide lucide-x" xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 6 6 18"/><path d="m6 6 12 12"/></svg>
+                </button>
+            `;
+            episodeGroup.querySelector('.remove-episode-btn').addEventListener('click', () => {
+                episodeGroup.remove();
+            });
+            return episodeGroup;
+        };
+
+        // Function to create a season input group
+        const createSeasonGroup = (seasonNumber, episodes = [], seasonId = '') => {
+            const seasonGroup = document.createElement('div');
+            seasonGroup.className = 'bg-gray-800 p-4 rounded-xl space-y-3';
+            seasonGroup.innerHTML = `
+                <div class="flex items-center space-x-2">
+                    <input type="number" placeholder="Season Number" value="${seasonNumber}" min="1" class="season-number-input w-24 px-4 py-3 bg-gray-700 rounded-lg text-gray-200 border border-gray-600 focus:outline-none focus:border-purple-500" required>
+                    <p class="text-xl font-bold text-white">Season ${seasonNumber}</p>
+                    <input type="hidden" class="season-id" value="${seasonId}">
+                    <button type="button" class="remove-season-btn ml-auto text-gray-400 hover:text-red-500">
+                        <svg class="lucide lucide-x" xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 6 6 18"/><path d="m6 6 12 12"/></svg>
+                    </button>
+                </div>
+                <div class="episodes-container space-y-2">
+                    <!-- Episodes for this season will be added here -->
+                </div>
+                <button type="button" class="add-episode-btn w-full py-2 bg-gray-700 hover:bg-gray-600 rounded-lg text-gray-200 font-bold transition-colors">
+                    Add Episode
+                </button>
+            `;
+
+            const episodesContainer = seasonGroup.querySelector('.episodes-container');
+            episodes.forEach((episode) => {
+                episodesContainer.appendChild(createEpisodeGroup(episode.episodeNumber, episode.title, episode.streamingUrl, episode._id));
+            });
+
+            const addEpisodeBtn = seasonGroup.querySelector('.add-episode-btn');
+            const removeSeasonBtn = seasonGroup.querySelector('.remove-season-btn');
+            
+            addEpisodeBtn.addEventListener('click', () => {
+                const episodeCount = episodesContainer.querySelectorAll('div').length + 1;
+                episodesContainer.appendChild(createEpisodeGroup(episodeCount));
+            });
+
+            removeSeasonBtn.addEventListener('click', () => {
+                seasonGroup.remove();
+            });
+
+            return seasonGroup;
+        };
+
+        // Function to render a single series card
+        const renderSeriesCard = (item) => {
             const card = document.createElement('div');
             card.className = 'relative group overflow-hidden rounded-xl shadow-lg bg-gray-800 transition-transform transform hover:scale-105 duration-300 ease-in-out';
             
             // Generate content for the details panel
             let detailsContent = '';
-            if (item.type === 'movie') {
-                detailsContent = `
-                    <p class="text-gray-400 text-sm mb-4">A single film masterpiece.</p>
-                    <a href="${item.streamingUrl}" target="_blank" rel="noopener noreferrer" class="bg-purple-600 hover:bg-purple-700 text-white font-bold py-2 px-4 rounded-full transition-colors text-sm inline-block">
-                        Watch Now
-                    </a>
-                `;
-            } else if (item.type === 'series' && item.seasons) {
+            if (item.seasons) {
                 detailsContent = `
                     <p class="text-gray-400 text-sm mb-2">A television series with multiple seasons.</p>
                     <div class="space-y-2 mt-4 max-h-40 overflow-y-auto">
@@ -211,7 +241,7 @@
                 <div class="aspect-[2/3] w-full overflow-hidden">
                     <img src="${item.thumbnail}" alt="${item.name}" class="w-full h-full object-cover group-hover:opacity-75 transition-opacity" onerror="this.onerror=null;this.src='https://placehold.co/400x600/1f2937/d1d5db?text=Image+Not+Found';">
                     <div class="absolute top-2 left-2 p-1.5 rounded-full bg-black/50 backdrop-blur-sm text-white">
-                        <svg class="lucide lucide-${item.type === 'movie' ? 'film' : 'tv'}" xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect width="18" height="18" x="3" y="3" rx="2" ry="2"/><path d="M7 3v18"/><path d="M17 3v18"/><path d="M3 8h18"/><path d="M3 16h18"/></svg>
+                        <svg class="lucide lucide-tv" xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect width="20" height="15" x="2" y="7" rx="2" ry="2"/><path d="M17 2l-5 5-5-5"/></svg>
                     </div>
                 </div>
 
@@ -219,15 +249,12 @@
                 <div class="absolute bottom-0 w-full bg-gradient-to-t from-black/80 to-transparent p-4 transition-all duration-300 ease-in-out">
                     <h3 class="text-white text-sm sm:text-lg font-semibold truncate group-hover:whitespace-normal">${item.name}</h3>
                     <div class="flex items-center justify-between mt-2">
-                        <button class="show-details-btn text-xs text-gray-400 hover:text-white transition-colors flex items-center">
-                            Show Details
-                            <svg class="lucide lucide-chevron-down ml-1 transition-transform" xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m6 9 6 6 6-6"/></svg>
-                        </button>
+                        <p class="text-xs text-gray-400 break-all">ID: ${item._id}</p>
                         <div class="flex gap-2 text-gray-400">
-                            <button class="edit-btn hover:text-purple-400 transition-colors" data-id="${item._id}" data-type="${item.type}">
+                            <button class="edit-btn hover:text-purple-400 transition-colors" data-id="${item._id}">
                                 <svg class="lucide lucide-edit" xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4Z"/></svg>
                             </button>
-                            <button class="delete-btn hover:text-red-400 transition-colors" data-id="${item._id}" data-type="${item.type}">
+                            <button class="delete-btn hover:text-red-400 transition-colors" data-id="${item._id}">
                                 <svg class="lucide lucide-trash-2" xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 6h18"/><path d="M19 6v14c0 1-1 2-2 2H7c-1 0-2-1-2-2V6"/><path d="M8 6V4c0-1 1-2 2-2h4c1 0 2 1 2 2v2"/><line x1="10" x2="10" y1="11" y2="17"/><line x1="14" x2="14" y1="11" y2="17"/></svg>
                             </button>
                         </div>
@@ -244,7 +271,6 @@
             // Add click event listener to toggle details panel
             const showDetailsBtn = card.querySelector('.show-details-btn');
             const detailsPanel = card.querySelector('.details-panel');
-            const chevronIcon = card.querySelector('.lucide-chevron-down');
             const editBtn = card.querySelector('.edit-btn');
             const deleteBtn = card.querySelector('.delete-btn');
 
@@ -266,32 +292,32 @@
             return card;
         };
 
-        // Main function to fetch and display media
-        const fetchAndRenderMedia = async (searchTerm = '') => {
+        // Main function to fetch and display series
+        const fetchAndRenderSeries = async (searchTerm = '') => {
             show(loadingIndicator);
             hide(errorMessage);
             hide(noResultsMessage);
             mediaContainer.innerHTML = '';
             
-            const url = `${API_BASE_URL}/api/media?search=${encodeURIComponent(searchTerm)}`;
+            const url = `${API_BASE_URL}/api/series?search=${encodeURIComponent(searchTerm)}`;
 
             try {
                 const response = await fetch(url);
-                if (!response.ok) throw new Error('Failed to fetch media data');
+                if (!response.ok) throw new Error('Failed to fetch series data');
                 const data = await response.json();
                 
                 if (data.length === 0) {
                     show(noResultsMessage);
                 } else {
                     data.forEach(item => {
-                        mediaContainer.appendChild(renderMediaCard(item));
+                        mediaContainer.appendChild(renderSeriesCard(item));
                     });
                     // Refresh Lucide icons after adding new elements
                     lucide.createIcons();
                 }
 
             } catch (error) {
-                console.error('Error fetching media:', error);
+                console.error('Error fetching series:', error);
                 show(errorMessage);
             } finally {
                 hide(loadingIndicator);
@@ -302,129 +328,42 @@
         // DYNAMIC FORMS & MODAL LOGIC (ADD/EDIT/DELETE)
         // ================================================================
 
-        const createEpisodeGroup = (episodeNumber, title = '', streamingUrl = '') => {
-            const episodeGroup = document.createElement('div');
-            episodeGroup.className = 'flex flex-col sm:flex-row space-y-2 sm:space-y-0 sm:space-x-2 border-l-4 border-gray-600 pl-4 py-2 relative group';
-            episodeGroup.innerHTML = `
-                <input type="text" placeholder="Episode Title (e.g., 'Chapter One')" class="w-full sm:w-1/2 px-4 py-3 bg-gray-800 rounded-lg text-gray-200 border border-gray-700 focus:outline-none focus:border-purple-500" value="${title}" required>
-                <input type="url" placeholder="Streaming URL" class="w-full sm:w-1/2 px-4 py-3 bg-gray-800 rounded-lg text-gray-200 border border-gray-700 focus:outline-none focus:border-purple-500" value="${streamingUrl}" required>
-                <input type="hidden" class="episode-number" value="${episodeNumber}">
-                <button type="button" class="remove-episode-btn absolute top-0 right-0 p-1 text-gray-400 hover:text-red-500 opacity-0 group-hover:opacity-100 transition-opacity">
-                    <svg class="lucide lucide-x" xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 6 6 18"/><path d="m6 6 12 12"/></svg>
-                </button>
-            `;
-            episodeGroup.querySelector('.remove-episode-btn').addEventListener('click', () => {
-                episodeGroup.remove();
-                reindexEpisodes(episodeGroup.closest('.episodes-container'));
-            });
-            return episodeGroup;
-        };
-
-        const reindexEpisodes = (container) => {
-            const episodeGroups = container.querySelectorAll('div');
-            episodeGroups.forEach((group, index) => {
-                group.querySelector('.episode-number').value = index + 1;
-            });
-        };
-
-        const createSeasonGroup = (seasonNumber, episodes = []) => {
-            const seasonGroup = document.createElement('div');
-            seasonGroup.className = 'bg-gray-800 p-4 rounded-xl space-y-3';
-            seasonGroup.innerHTML = `
-                <div class="flex items-center space-x-2">
-                    <input type="number" placeholder="Season Number" value="${seasonNumber}" min="1" class="season-number-input w-24 px-4 py-3 bg-gray-700 rounded-lg text-gray-200 border border-gray-600 focus:outline-none focus:border-purple-500" required>
-                    <p class="text-xl font-bold text-white">Season ${seasonNumber}</p>
-                    <button type="button" class="remove-season-btn ml-auto text-gray-400 hover:text-red-500">
-                        <svg class="lucide lucide-x" xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 6 6 18"/><path d="m6 6 12 12"/></svg>
-                    </button>
-                </div>
-                <div class="episodes-container space-y-2">
-                    <!-- Episodes for this season will be added here -->
-                </div>
-                <button type="button" class="add-episode-btn w-full py-2 bg-gray-700 hover:bg-gray-600 rounded-lg text-gray-200 font-bold transition-colors">
-                    Add Episode
-                </button>
-            `;
-
-            const episodesContainer = seasonGroup.querySelector('.episodes-container');
-            episodes.forEach((episode, index) => {
-                episodesContainer.appendChild(createEpisodeGroup(episode.episodeNumber || index + 1, episode.title, episode.streamingUrl));
-            });
-
-            const addEpisodeBtn = seasonGroup.querySelector('.add-episode-btn');
-            const removeSeasonBtn = seasonGroup.querySelector('.remove-season-btn');
-            
-            addEpisodeBtn.addEventListener('click', () => {
-                const episodeCount = episodesContainer.querySelectorAll('div').length + 1;
-                episodesContainer.appendChild(createEpisodeGroup(episodeCount));
-            });
-
-            removeSeasonBtn.addEventListener('click', () => {
-                seasonGroup.remove();
-                reindexSeasons();
-            });
-
-            return seasonGroup;
-        };
-        
-        const reindexSeasons = () => {
-            const seasonGroups = seasonsContainer.querySelectorAll('.bg-gray-800');
-            seasonGroups.forEach((seasonGroup, index) => {
-                const seasonNumber = index + 1;
-                seasonGroup.querySelector('.season-number-input').value = seasonNumber;
-                seasonGroup.querySelector('p').textContent = `Season ${seasonNumber}`;
-            });
-        };
-
         const openEditModal = (item) => {
             resetModal();
-            modalTitle.textContent = `Edit ${item.type === 'movie' ? 'Movie' : 'Series'}`;
-            movieSubmitBtn.textContent = 'Save Changes';
+            modalTitle.textContent = 'Edit Series';
             seriesSubmitBtn.textContent = 'Save Changes';
-            hide(typeToggleBtns);
             
-            if (item.type === 'movie') {
-                show(movieForm);
-                hide(seriesForm);
-                document.getElementById('movie-id').value = item._id;
-                document.getElementById('movie-name').value = item.name;
-                document.getElementById('movie-thumbnail').value = item.thumbnail;
-                document.getElementById('movie-url').value = item.streamingUrl;
-            } else if (item.type === 'series') {
-                show(seriesForm);
-                hide(movieForm);
-                document.getElementById('series-id').value = item._id;
-                document.getElementById('series-name').value = item.name;
-                document.getElementById('series-thumbnail').value = item.thumbnail;
-                item.seasons.forEach(season => {
-                    seasonsContainer.appendChild(createSeasonGroup(season.seasonNumber, season.episodes));
-                });
-            }
+            document.getElementById('series-id').value = item._id;
+            document.getElementById('series-name').value = item.name;
+            document.getElementById('series-thumbnail').value = item.thumbnail;
+            item.seasons.forEach(season => {
+                seasonsContainer.appendChild(createSeasonGroup(season.seasonNumber, season.episodes, season._id));
+            });
 
-            show(mediaModal);
+            show(seriesModal);
         };
 
         const openConfirmModal = (item) => {
-            itemToDelete = item;
+            itemToModify = item;
             show(confirmModal);
         };
 
-        const deleteMedia = async () => {
-            if (!itemToDelete) return;
+        const deleteSeries = async () => {
+            if (!itemToModify) return;
             hide(confirmModal);
 
-            const { _id, type } = itemToDelete;
-            const endpoint = `/api/${type}s/${_id}`;
+            const { _id } = itemToModify;
+            const endpoint = `/api/series/${_id}`;
 
             try {
                 const response = await fetch(`${API_BASE_URL}${endpoint}`, { method: 'DELETE' });
                 if (!response.ok) throw new Error('Failed to delete item.');
-                fetchAndRenderMedia(searchInput.value);
+                fetchAndRenderSeries(searchInput.value);
             } catch (error) {
-                console.error('Error deleting media:', error);
+                console.error('Error deleting series:', error);
                 // In a real app, show a user-facing error message here
             } finally {
-                itemToDelete = null;
+                itemToModify = null;
             }
         };
 
@@ -436,63 +375,45 @@
         searchInput.addEventListener('keyup', () => {
             clearTimeout(debounceTimeout);
             debounceTimeout = setTimeout(() => {
-                fetchAndRenderMedia(searchInput.value);
+                fetchAndRenderSeries(searchInput.value);
             }, 500);
         });
 
         // Open Modal (Add new)
-        addMediaBtn.addEventListener('click', () => {
+        addSeriesBtn.addEventListener('click', () => {
             resetModal();
-            show(mediaModal);
+            show(seriesModal);
         });
 
         // Close Modal
         closeModalBtn.addEventListener('click', () => {
-            hide(mediaModal);
+            hide(seriesModal);
             resetModal();
         });
-        mediaModal.addEventListener('click', (e) => {
-            if (e.target === mediaModal) {
-                hide(mediaModal);
+        seriesModal.addEventListener('click', (e) => {
+            if (e.target === seriesModal) {
+                hide(seriesModal);
                 resetModal();
             }
         });
 
         // Confirm/Cancel Delete
-        confirmDeleteBtn.addEventListener('click', deleteMedia);
+        confirmDeleteBtn.addEventListener('click', deleteSeries);
         cancelDeleteBtn.addEventListener('click', () => {
             hide(confirmModal);
-            itemToDelete = null;
-        });
-
-        // Switch between Movie and Series forms
-        movieFormBtn.addEventListener('click', () => {
-            show(movieForm);
-            hide(seriesForm);
-            movieFormBtn.classList.add('bg-purple-600', 'text-white');
-            movieFormBtn.classList.remove('bg-gray-800', 'text-gray-400');
-            seriesFormBtn.classList.remove('bg-purple-600', 'text-white');
-            seriesFormBtn.classList.add('bg-gray-800', 'text-gray-400');
-        });
-        seriesFormBtn.addEventListener('click', () => {
-            show(seriesForm);
-            hide(movieForm);
-            seriesFormBtn.classList.add('bg-purple-600', 'text-white');
-            seriesFormBtn.classList.remove('bg-gray-800', 'text-gray-400');
-            movieFormBtn.classList.remove('bg-purple-600', 'text-white');
-            movieFormBtn.classList.add('bg-gray-800', 'text-gray-400');
+            itemToModify = null;
         });
 
         // Handle form submissions
-        const handleFormSubmit = async (data, endpoint, form, method) => {
+        const handleFormSubmit = async (data, endpoint, method) => {
             try {
-                if (method === 'POST') {
-                    if (endpoint === '/api/movies' && (!data.name || !data.thumbnail || !data.streamingUrl)) {
-                        throw new Error('Please fill in all movie fields.');
-                    }
-                    if (endpoint === '/api/series' && (!data.name || !data.thumbnail || data.seasons.length === 0)) {
-                        throw new Error('Please fill in all series fields and add at least one season/episode.');
-                    }
+                if (method === 'POST' && (!data.name || !data.thumbnail || data.seasons.length === 0)) {
+                    // Check for required fields for a new entry
+                    modalMessage.textContent = 'Error: Please fill in all series fields and add at least one season/episode.';
+                    modalMessage.classList.remove('text-green-500');
+                    modalMessage.classList.add('text-red-500');
+                    show(modalMessage);
+                    return;
                 }
                 
                 const response = await fetch(`${API_BASE_URL}${endpoint}`, {
@@ -506,13 +427,13 @@
                     throw new Error(errorData.error || 'Something went wrong on the server.');
                 }
 
-                modalMessage.textContent = `Content ${method === 'POST' ? 'added' : 'updated'} successfully!`;
+                modalMessage.textContent = `Series ${method === 'POST' ? 'added' : 'updated'} successfully!`;
                 modalMessage.classList.remove('text-red-500');
                 modalMessage.classList.add('text-green-500');
                 show(modalMessage);
                 
-                form.reset();
-                fetchAndRenderMedia(searchInput.value);
+                seriesForm.reset();
+                fetchAndRenderSeries(searchInput.value);
             } catch (error) {
                 modalMessage.textContent = `Error: ${error.message}`;
                 modalMessage.classList.remove('text-green-500');
@@ -520,19 +441,6 @@
                 show(modalMessage);
             }
         };
-
-        movieForm.addEventListener('submit', (e) => {
-            e.preventDefault();
-            const id = document.getElementById('movie-id').value;
-            const data = {
-                name: document.getElementById('movie-name').value,
-                thumbnail: document.getElementById('movie-thumbnail').value,
-                streamingUrl: document.getElementById('movie-url').value,
-            };
-            const method = id ? 'PUT' : 'POST';
-            const endpoint = id ? `/api/movies/${id}` : '/api/movies';
-            handleFormSubmit(data, endpoint, movieForm, method);
-        });
 
         seriesForm.addEventListener('submit', (e) => {
             e.preventDefault();
@@ -551,11 +459,16 @@
                     episodes.push({
                         title: inputs[0].value,
                         streamingUrl: inputs[1].value,
-                        episodeNumber: parseInt(inputs[2].value)
+                        episodeNumber: parseInt(inputs[2].value),
+                        _id: inputs[3].value || undefined // Include existing ID for updates
                     });
                 });
                 
-                seasons.push({ seasonNumber, episodes });
+                seasons.push({ 
+                    seasonNumber, 
+                    episodes,
+                    _id: seasonEl.querySelector('.season-id').value || undefined // Include existing ID for updates
+                });
             });
             
             const data = {
@@ -566,7 +479,7 @@
 
             const method = id ? 'PUT' : 'POST';
             const endpoint = id ? `/api/series/${id}` : '/api/series';
-            handleFormSubmit(data, endpoint, seriesForm, method);
+            handleFormSubmit(data, endpoint, method);
         });
 
         // Add Season button handler
@@ -581,7 +494,7 @@
             const urlParams = new URLSearchParams(window.location.search);
             const initialSearchTerm = urlParams.get('search') || '';
             searchInput.value = initialSearchTerm;
-            fetchAndRenderMedia(initialSearchTerm);
+            fetchAndRenderSeries(initialSearchTerm);
         });
     </script>
 </body>
