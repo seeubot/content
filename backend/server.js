@@ -133,13 +133,14 @@ app.delete('/api/series/:id', async (req, res) => {
     }
 });
 
-// Serve the static frontend file (index.html)
-app.use(express.static('public'));
+// IMPORTANT CHANGE: Serve index.html directly from the project root
+// We are no longer serving a 'public' folder.
+app.use(express.static(__dirname));
 
-// Catch-all route to serve the index.html for any other requests
-// This is important for single-page applications.
+// IMPORTANT CHANGE: Catch-all route to serve the index.html
+// This will serve the file from the root for all other requests.
 app.get('*', (req, res) => {
-    res.sendFile(path.join(__dirname, 'public', 'index.html'));
+    res.sendFile(path.join(__dirname, 'index.html'));
 });
 
 // Start the server
