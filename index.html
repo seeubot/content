@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Series Library</title>
+    <title>Series Manager</title>
     <!-- Tailwind CSS for styling -->
     <script src="https://cdn.tailwindcss.com"></script>
     <!-- Lucide Icons for a modern look -->
@@ -22,9 +22,9 @@
         <!-- Header -->
         <header class="py-8 text-center">
             <h1 class="text-4xl sm:text-5xl md:text-6xl font-extrabold text-transparent bg-clip-text bg-gradient-to-r from-purple-400 to-pink-600 mb-2 animate-pulse">
-                Series Library
+                Series Manager
             </h1>
-            <p class="text-lg sm:text-xl text-gray-400">Your favorite series, all in one place.</p>
+            <p class="text-lg sm:text-xl text-gray-400">Manage your series library.</p>
         </header>
 
         <!-- Search Bar and Add Button -->
@@ -54,7 +54,7 @@
             <svg class="lucide lucide-loader-2 animate-spin text-purple-500" xmlns="http://www.w3.org/2000/svg" width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12a9 9 0 1 1-6.219-8.56"/></svg>
         </div>
         <div id="error-message" class="text-center text-red-400 py-12 hidden">
-            <p>Failed to load series. Please check the API server.</p>
+            <p>Failed to load series. Please check the API server and the API URL.</p>
         </div>
         <div id="no-results-message" class="text-center text-gray-500 py-12 hidden">
             <p>No series found. Try adding some or try a different search term.</p>
@@ -102,7 +102,7 @@
     </div>
     
     <script>
-        // *** IMPORTANT: This URL is crucial. It must match your live Koyeb service URL. ***
+        // *** IMPORTANT: This URL must match your live backend service URL. ***
         const API_BASE_URL = "https://ethical-stephana-seeutech-e153f907.koyeb.app";
 
         // ================================================================
@@ -207,87 +207,43 @@
             return seasonGroup;
         };
 
-        // Function to render a single series card
+        // Function to render a single series card using the user's provided structure
         const renderSeriesCard = (item) => {
             const card = document.createElement('div');
-            card.className = 'relative group overflow-hidden rounded-xl shadow-lg bg-gray-800 transition-transform transform hover:scale-105 duration-300 ease-in-out';
-            
-            // Generate content for the details panel
-            let detailsContent = '';
-            if (item.seasons) {
-                detailsContent = `
-                    <p class="text-gray-400 text-sm mb-2">A television series with multiple seasons.</p>
-                    <div class="space-y-2 mt-4 max-h-40 overflow-y-auto">
-                        ${item.seasons.map(season => `
-                            <div>
-                                <p class="font-semibold text-white">Season ${season.seasonNumber}</p>
-                                <ul class="text-gray-400 text-xs list-disc pl-5">
-                                    ${season.episodes.map(episode => `
-                                        <li>
-                                            <a href="${episode.streamingUrl}" target="_blank" rel="noopener noreferrer" class="hover:underline">
-                                                E${episode.episodeNumber}: ${episode.title}
-                                            </a>
-                                        </li>
-                                    `).join('')}
-                                </ul>
-                            </div>
-                        `).join('')}
-                    </div>
-                `;
+            card.className = 'card w-40 bg-gray-100 rounded-xl bg-base-100 shadow-lg h-48 mb-4 flex flex-col relative';
+
+            // Get the streaming URL for the first episode
+            let streamingUrl = '#'; // Default to a non-functional link
+            if (item.seasons && item.seasons.length > 0 && item.seasons[0].episodes && item.seasons[0].episodes.length > 0) {
+                streamingUrl = item.seasons[0].episodes[0].streamingUrl;
             }
 
+            // Create the Android intent link
+            const intentHref = `intent:${streamingUrl}#Intent;package=com.genuine.leone;end`;
+
             card.innerHTML = `
-                <!-- Thumbnail and Type Icon -->
-                <div class="aspect-[2/3] w-full overflow-hidden">
-                    <img src="${item.thumbnail}" alt="${item.name}" class="w-full h-full object-cover group-hover:opacity-75 transition-opacity" onerror="this.onerror=null;this.src='https://placehold.co/400x600/1f2937/d1d5db?text=Image+Not+Found';">
-                    <div class="absolute top-2 left-2 p-1.5 rounded-full bg-black/50 backdrop-blur-sm text-white">
-                        <svg class="lucide lucide-tv" xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect width="20" height="15" x="2" y="7" rx="2" ry="2"/><path d="M17 2l-5 5-5-5"/></svg>
-                    </div>
-                </div>
-
-                <!-- Title & Details Overlay -->
-                <div class="absolute bottom-0 w-full bg-gradient-to-t from-black/80 to-transparent p-4 transition-all duration-300 ease-in-out">
-                    <h3 class="text-white text-sm sm:text-lg font-semibold truncate group-hover:whitespace-normal">${item.name}</h3>
-                    <div class="flex items-center justify-between mt-2">
-                        <p class="text-xs text-gray-400 break-all">ID: ${item._id}</p>
-                        <div class="flex gap-2 text-gray-400">
-                            <button class="edit-btn hover:text-purple-400 transition-colors" data-id="${item._id}">
-                                <svg class="lucide lucide-edit" xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4Z"/></svg>
-                            </button>
-                            <button class="delete-btn hover:text-red-400 transition-colors" data-id="${item._id}">
-                                <svg class="lucide lucide-trash-2" xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 6h18"/><path d="M19 6v14c0 1-1 2-2 2H7c-1 0-2-1-2-2V6"/><path d="M8 6V4c0-1 1-2 2-2h4c1 0 2 1 2 2v2"/><line x1="10" x2="10" y1="11" y2="17"/><line x1="14" x2="14" y1="11" y2="17"/></svg>
-                            </button>
-                        </div>
-                    </div>
-                </div>
-
-                <!-- Collapsible Details Panel -->
-                <div class="details-panel absolute inset-0 bg-gray-900/95 backdrop-blur-sm p-4 pt-16 rounded-xl overflow-y-auto transform translate-y-full transition-all duration-300 ease-in-out">
-                    <h3 class="text-white text-xl font-bold mb-2">${item.name}</h3>
-                    ${detailsContent}
+                <a href="${intentHref}" class="flex flex-col flex-grow">
+                    <img src="${item.thumbnail}" loading="lazy" class="h-28 mt-5 m-auto opacity-100 rounded-xl" onerror="this.onerror=null;this.src='https://placehold.co/400x600/1f2937/d1d5db?text=Image+Not+Found';">
+                    <div class="mb-5 opacity-100 mt-2"> 
+                        <h2 class="text-center text-sm font-bold text-white truncate px-2">${item.name}</h2> 
+                        <div class="flex justify-center space-x-1"> 
+                            <p class="text-xs text-center text-gray-400">ID: ${item._id}</p> 
+                        </div> 
+                    </div> 
+                </a>
+                <div class="absolute top-2 right-2 flex space-x-2 z-10">
+                    <button class="edit-btn p-1 bg-gray-800/80 rounded-full hover:bg-purple-600 transition-colors" data-id="${item._id}">
+                        <svg class="lucide lucide-edit text-white" xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4Z"/></svg>
+                    </button>
+                    <button class="delete-btn p-1 bg-gray-800/80 rounded-full hover:bg-red-600 transition-colors" data-id="${item._id}">
+                        <svg class="lucide lucide-trash-2 text-white" xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 6h18"/><path d="M19 6v14c0 1-1 2-2 2H7c-1 0-2-1-2-2V6"/><path d="M8 6V4c0-1 1-2 2-2h4c1 0 2 1 2 2v2"/><line x1="10" x2="10" y1="11" y2="17"/><line x1="14" x2="14" y1="11" y2="17"/></svg>
+                    </button>
                 </div>
             `;
             
-            // Add click event listener to toggle details panel
-            const showDetailsBtn = card.querySelector('.show-details-btn');
-            const detailsPanel = card.querySelector('.details-panel');
-            const editBtn = card.querySelector('.edit-btn');
-            const deleteBtn = card.querySelector('.delete-btn');
-
-            showDetailsBtn.addEventListener('click', () => {
-                const isHidden = detailsPanel.classList.contains('translate-y-full');
-                if (isHidden) {
-                    detailsPanel.classList.remove('translate-y-full');
-                    showDetailsBtn.innerHTML = `Hide Details <svg class="lucide lucide-chevron-up ml-1 transition-transform rotate-180" xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m6 15 6-6 6 6"/></svg>`;
-                } else {
-                    detailsPanel.classList.add('translate-y-full');
-                    showDetailsBtn.innerHTML = `Show Details <svg class="lucide lucide-chevron-down ml-1 transition-transform" xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m6 9 6 6 6-6"/></svg>`;
-                }
-            });
-
             // Handle edit and delete button clicks
-            editBtn.addEventListener('click', () => openEditModal(item));
-            deleteBtn.addEventListener('click', () => openConfirmModal(item));
+            card.querySelector('.edit-btn').addEventListener('click', () => openEditModal(item));
+            card.querySelector('.delete-btn').addEventListener('click', () => openConfirmModal(item));
 
             return card;
         };
@@ -303,7 +259,13 @@
 
             try {
                 const response = await fetch(url);
-                if (!response.ok) throw new Error('Failed to fetch series data');
+                if (!response.ok) {
+                     // Check for a 404 error specifically, as it's common for a new deployment
+                    if (response.status === 404) {
+                         throw new Error('API server not found (404). Please ensure the URL is correct and the server is running.');
+                    }
+                    throw new Error(`Failed to fetch series data. Status: ${response.status}`);
+                }
                 const data = await response.json();
                 
                 if (data.length === 0) {
@@ -318,6 +280,7 @@
 
             } catch (error) {
                 console.error('Error fetching series:', error);
+                errorMessage.querySelector('p').textContent = `Error: ${error.message}`;
                 show(errorMessage);
             } finally {
                 hide(loadingIndicator);
